@@ -1,4 +1,5 @@
 using JLD2, IntervalArithmetic, ProgressBars, StaticArrays, ProgressMeter, Base.Threads, DelimitedFiles, ProgressMeter
+println("Running with $(Threads.nthreads()) threads")
 
 
 @inline function calc_range(box, p2, p3, M, r)
@@ -80,7 +81,7 @@ p2v = sup(1.5 + sqrt(9/4 - convert(Interval, p3v)))
 
 n = length(matlist)
 validlist = fill(-1, n)
-logfile = "lemma2_" * ARGS[2] * "$(Float64(p3v))_1.csv"
+logfile = "lemma2_" * ARGS[2] * "_$(Float64(p3v))_1.csv"
 
 if isfile(logfile)
     println("Reloading previous results from $logfile ...")
@@ -94,6 +95,7 @@ end
 
 iterator = [x for x in eachindex(matlist) if validlist[x] == -1]
 println("Remaining to compute: ", length(iterator), " out of $n")
+progress = Progress(length(matlist); showspeed=true)
 
 
 writelock = ReentrantLock()
@@ -109,6 +111,7 @@ open(logfile, "a") do io
                 validlist[i] = result
                 println(io, "$i,$result")
                 flush(io)
+                next!(progress)
             end
         end
     end
