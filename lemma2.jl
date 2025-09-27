@@ -95,7 +95,6 @@ end
 
 iterator = [x for x in eachindex(matlist) if validlist[x] == -1]
 println("Remaining to compute: ", length(iterator), " out of $n")
-progress = Progress(length(matlist); showspeed=true)
 
 
 writelock = ReentrantLock()
@@ -111,10 +110,12 @@ open(logfile, "a") do io
                 validlist[i] = result
                 println(io, "$i,$result")
                 flush(io)
-                next!(progress)
             end
         end
     end
 end
 
 println("Finished")
+
+
+
