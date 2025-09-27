@@ -222,7 +222,7 @@ function refine_boxes(boxes, dim)
     return new_boxes
 end
 
-function search_box(box, g, p3b; lim=10000, stacklim=1000, show=false)
+function search_box(box, g, p3b; lim=100000, stacklim=1000, show=false)
     stack = [(box,1)]
     t = 0
     while 0 < length(stack) < stacklim && t < lim
