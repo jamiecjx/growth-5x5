@@ -278,7 +278,7 @@ println("Reached required box width")
 progress = Progress(length(matlist); showspeed=true)
 
 Threads.@threads for i in 1:length(matlist)
-    test1 = search_box(matlist[i], g, p3b; lim=10000, stacklim=1000, show=false)
+    test1 = search_box(matlist[i], g, p3b; lim=100000, stacklim=1000, show=false)
     if length(test1) == 0
         matlist[i] *= 0
     end
