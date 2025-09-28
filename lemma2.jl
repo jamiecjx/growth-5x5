@@ -51,7 +51,7 @@ A3 = [1 1 1/2;1 -1/2 -1;1/2 -1 1]
 A31 = [1 1/2 1;1 -1 -1/2;1/2 1 -1]
 A32 = [1 1 1/2;1/2 -1 1;1 -1/2 -1]
 
-function test_if_m(mat, d, p2v, p3v; show=false, lim=400)
+function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
     boxlist = [(SVector{12}([-1..1 for _=1:12]), 1)]
     t = 0
     while 0 < length(boxlist) < lim
@@ -68,7 +68,7 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400)
             if t % 1000000 == 0
                 display((t/1000000, length(boxlist), diam(boxlist[end][1][1])))
             end
-            if t == 500000000
+            if t == timeout
                 return boxlist 
             end
         end
