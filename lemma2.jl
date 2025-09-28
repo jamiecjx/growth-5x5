@@ -99,6 +99,7 @@ println("Remaining to compute: ", length(iterator), " out of $n")
 
 
 writelock = ReentrantLock()
+progress = Progress(length(matlist); showspeed=true)
 
 open(logfile, "a") do io
     @sync for j in eachindex(iterator)
@@ -107,7 +108,6 @@ open(logfile, "a") do io
             if length(test_if_m(matlist[i], 1, p2v, p3v)) == 0
                 result = 0
             else
-                display("reached here")
                 tempmatlist = [matlist[i]]
                 for i=1:8
                     tempmatlist = refine_boxes(tempmatlist, i)
@@ -123,6 +123,7 @@ open(logfile, "a") do io
                 println(io, "$i,$result")
                 flush(io)
             end
+            next!(progress)
         end
     end
 end
