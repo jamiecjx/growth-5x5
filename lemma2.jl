@@ -1,6 +1,7 @@
 using JLD2, IntervalArithmetic, ProgressBars, StaticArrays, ProgressMeter, Base.Threads, DelimitedFiles, ProgressMeter
 println("Running with $(Threads.nthreads()) threads")
-
+println("Begin Lemma 2")
+include("growth_check.jl")
 
 @inline function calc_range(box, p2, p3, M, r)
     x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12 = box
@@ -36,7 +37,7 @@ println("Running with $(Threads.nthreads()) threads")
 end
 
 
-function subdivide_box(box, dim::Int)
+function subdivide_box(box, dim)
     I1, I2 = bisect(box[dim], 0.5)
     return (
         setindex(box, I1, dim),
@@ -67,7 +68,7 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400)
             if t % 1000000 == 0
                 display((t/1000000, length(boxlist), diam(boxlist[end][1][1])))
             end
-            if t == 1000000000
+            if t == 500000000
                 return boxlist 
             end
         end
@@ -99,13 +100,24 @@ println("Remaining to compute: ", length(iterator), " out of $n")
 
 writelock = ReentrantLock()
 
-
 open(logfile, "a") do io
     @sync for j in eachindex(iterator)
         Threads.@spawn begin
             i = iterator[j]
-
-            result = length(test_if_m(matlist[i], 1, p2v, p3v))
+            if length(test_if_m(matlist[i], 1, p2v, p3v)) == 0
+                result = 0
+            else
+                display("reached here")
+                tempmatlist = [matlist[i]]
+                for i=1:8
+                    tempmatlist = refine_boxes(tempmatlist, i)
+                end
+                t = 0
+                for M in tempmatlist
+                    t += length(test_if_m(M, 1, p2v, p3v))
+                end
+                result = t
+            end  
             lock(writelock) do
                 validlist[i] = result
                 println(io, "$i,$result")
