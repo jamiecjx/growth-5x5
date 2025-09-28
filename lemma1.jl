@@ -210,7 +210,7 @@ end
 
 function refine_boxes(boxes, dim)
     new_boxes = MMatrix{3,3}{Interval{Float64}}[]
-    for A in ProgressBar(boxes)
+    for A in boxes
         B1, B2 = split_box(A, dim)
         if !check_growth_fast(B1, g, p3b)
             push!(new_boxes, B1)
@@ -271,6 +271,23 @@ for k=1:levels
     display(length(matlist))
 end
 
+println("Reached required box side length")
+progress = Progress(length(matlist); showspeed=true)
+Threads.@threads for i in 1:length(matlist)
+    templist = [matlist[i]]
+    for j=1:8
+        templist = refine_boxes(templist, j)
+    end
+    if length(templist) == 0
+        matlist[i] *= 0
+    end
+    next!(progress)
+end
+
+filter!(x -> !iszero(x), matlist)
+println("Filter round 1")
+display(length(matlist))
+
 progress = Progress(length(matlist); showspeed=true)
 Threads.@threads for i in 1:length(matlist)
     test1 = search_box(matlist[i], g, p3b; lim=10000, stacklim=1000, show=false)
@@ -281,12 +298,13 @@ Threads.@threads for i in 1:length(matlist)
 end
 
 filter!(x -> !iszero(x), matlist)
+println("Filter round 2")
+display(length(matlist))
 
 println("Finished")
-display(length(matlist))
 filename = "lemma1_$(Float64(g))_$(levels)_matlist.jld2"
 JLD2.save(filename, "matlist", matlist)
-
+println("Saved as $(filename)")
 
 
 # matlist2 = Vector{MMatrix{3,3,Interval{Float64}}}()
