@@ -68,7 +68,6 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
             t += 1
             if t % 1000000 == 0
                 println("$(t/1000000), $(length(boxlist)), $(diam(boxlist[end][1][1]))")
-                flush(stdout)
             end
             if t == timeout
                 return boxlist 
