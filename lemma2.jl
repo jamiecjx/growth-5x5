@@ -67,7 +67,8 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
         if show
             t += 1
             if t % 1000000 == 0
-                display((t/1000000, length(boxlist), diam(boxlist[end][1][1])))
+                println("$(t/1000000), $(length(boxlist)), $(diam(boxlist[end][1][1]))")
+                flush(stdout)
             end
             if t == timeout
                 return boxlist 
@@ -112,24 +113,24 @@ open(logfile, "a") do io
         if test1 == 0
             result = 0
         else
-            println("Retry $(i) case with refinement")
-            # more refined test: essentially repeating lemma 1 at a smaller scale
-            tempmatlist = [matlist[i]]
-            for k=1:8
-                tempmatlist = refine_boxes(tempmatlist, k)
-            end
-            for k in 1:length(tempmatlist)
-                test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000)
-                if length(test1) == 0
-                    tempmatlist[k] *= 0
-                end
-            end
-            filter!(x -> !iszero(x), tempmatlist)
-            t = 0
-            for M in tempmatlist
-                t += length(test_if_m(M, 1, p2v, p3v)) > 0
-            end
-            result = t
+            # println("Retry $(i) case with refinement")
+            # # more refined test: essentially repeating lemma 1 at a smaller scale
+            # tempmatlist = [matlist[i]]
+            # for k=1:8
+            #     tempmatlist = refine_boxes(tempmatlist, k)
+            # end
+            # for k in 1:length(tempmatlist)
+            #     test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000)
+            #     if length(test1) == 0
+            #         tempmatlist[k] *= 0
+            #     end
+            # end
+            # filter!(x -> !iszero(x), tempmatlist)
+            # t = 0
+            # for M in tempmatlist
+            #     t += length(test_if_m(M, 1, p2v, p3v)) > 0
+            # end
+            result = 1
         end  
         lock(writelock) do
             validlist[i] = result
