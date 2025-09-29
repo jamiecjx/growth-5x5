@@ -35,7 +35,8 @@ include("growth_check.jl")
 
     return false
 end
-
+g = Meta.parse(ARGS[1]) |> eval
+p3b = inf((3 - sqrt(9 - 4*convert(Interval, g)))/2)
 
 function subdivide_box(box, dim)
     I1, I2 = bisect(box[dim], 0.5)
@@ -45,7 +46,7 @@ function subdivide_box(box, dim)
     )
 end
 
-matlist = JLD2.load(ARGS[2])["matlist"]
+matlist = JLD2.load(ARGS[3])["matlist"]
 
 A3 = [1 1 1/2;1 -1/2 -1;1/2 -1 1]
 A31 = [1 1/2 1;1 -1 -1/2;1/2 1 -1]
@@ -77,12 +78,15 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
 end
 
 
-p3v = Meta.parse(ARGS[1]) |> eval
+p3v = Meta.parse(ARGS[2]) |> eval
 p2v = sup(1.5 + sqrt(9/4 - convert(Interval, p3v)))
+
+
+
 
 n = length(matlist)
 validlist = fill(-1, n)
-logfile = "lemma2_" * ARGS[2] * "_$(Float64(p3v))_1.csv"
+logfile = "lemma2_" * ARGS[3] * "_$(Float64(p3v))_1.csv"
 
 if isfile(logfile)
     println("Reloading previous results from $logfile ...")
@@ -108,13 +112,21 @@ open(logfile, "a") do io
             if length(test_if_m(matlist[i], 1, p2v, p3v)) == 0
                 result = 0
             else
+                # more refined test: essentially repeating lemma 1 at a smaller scale
                 tempmatlist = [matlist[i]]
-                for i=1:8
-                    tempmatlist = refine_boxes(tempmatlist, i)
+                for k=1:8
+                    tempmatlist = refine_boxes(tempmatlist, k)
                 end
+                for k in 1:length(tempmatlist)
+                    test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=false)
+                    if length(test1) == 0
+                        tempmatlist[k] *= 0
+                    end
+                end
+                filter!(x -> !iszero(x), tempmatlist)
                 t = 0
                 for M in tempmatlist
-                    t += length(test_if_m(M, 1, p2v, p3v))
+                    t += length(test_if_m(M, 1, p2v, p3v)) > 0
                 end
                 result = t
             end  
