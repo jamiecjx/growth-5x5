@@ -99,25 +99,7 @@ println("Running with $(Threads.nthreads()) threads")
 
 include("growth_check.jl")
 
-function search_box(box, g, p3b; lim=100000, stacklim=1000, show=false)
-    stack = [(box,1)]
-    t = 0
-    while 0 < length(stack) < stacklim && t < lim
-        (A,d) = pop!(stack)
-        B1, B2 = split_box(A, d)
-        if !check_growth_fast(B1, g, p3b)
-            push!(stack, (B1, d == 8 ? 1 : d + 1))
-        end
-        if !check_growth_fast(B2, g, p3b)
-            push!(stack, (B2, d == 8 ? 1 : d + 1))
-        end
-        t += 1
-        if show && t % 100000 == 0
-            display(length(stack))
-        end
-    end
-    stack
-end
+
 
 
 A3 = [1 1 1/2;1 -1/2 -1;1/2 -1 1]

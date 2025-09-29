@@ -1,4 +1,4 @@
-using JLD2, IntervalArithmetic, ProgressBars, StaticArrays, ProgressMeter, Base.Threads, DelimitedFiles, ProgressMeter
+using JLD2, IntervalArithmetic, ProgressBars, StaticArrays, Base.Threads, DelimitedFiles, ProgressMeter
 println("Running with $(Threads.nthreads()) threads")
 println("Begin Lemma 2")
 include("growth_check.jl")
@@ -105,39 +105,45 @@ println("Remaining to compute: ", length(iterator), " out of $n")
 
 
 writelock = ReentrantLock()
-
-Threads.@threads for j in eachindex(iterator)
-    i = iterator[j]
-    test1 = length(test_if_m(matlist[i], 1, p2v, p3v))
-    if test1 == 0
-        result = 0
-    else
-        println("Retry $(i) case with refinement")
-        # more refined test: essentially repeating lemma 1 at a smaller scale
-        tempmatlist = [matlist[i]]
-        for k=1:8
-            tempmatlist = refine_boxes(tempmatlist, k)
+open(logfile, "a") do io
+    Threads.@threads for j in eachindex(iterator)
+        i = iterator[j]
+        if i == 2716
+            test1 = length(test_if_m(matlist[i], 1, p2v, p3v; show=true))
+        else
+            test1 = length(test_if_m(matlist[i], 1, p2v, p3v))
         end
-        for k in 1:length(tempmatlist)
-            test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=false)
-            if length(test1) == 0
-                tempmatlist[k] *= 0
+        if test1 == 0
+            result = 0
+        else
+            println("Retry $(i) case with refinement")
+            # more refined test: essentially repeating lemma 1 at a smaller scale
+            tempmatlist = [matlist[i]]
+            for k=1:8
+                tempmatlist = refine_boxes(tempmatlist, k)
             end
+            println("d1")
+            for k in 1:length(tempmatlist)
+                println("test k = $(k)")
+                test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=true)
+                if length(test1) == 0
+                    tempmatlist[k] *= 0
+                end
+            end
+            filter!(x -> !iszero(x), tempmatlist)
+            t = 0
+            for M in tempmatlist
+                t += length(test_if_m(M, 1, p2v, p3v)) > 0
+            end
+            result = t
+        end  
+        lock(writelock) do
+            validlist[i] = result
+            println(io, "$i,$result")
+            flush(io)
         end
-        filter!(x -> !iszero(x), tempmatlist)
-        t = 0
-        for M in tempmatlist
-            t += length(test_if_m(M, 1, p2v, p3v)) > 0
-        end
-        result = t
-    end  
-    lock(writelock) do
-        validlist[i] = result
-        println(io, "$i,$result")
-        flush(io)
     end
 end
-
 
 println("Finished")
 
