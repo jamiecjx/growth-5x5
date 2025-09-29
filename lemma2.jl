@@ -108,11 +108,7 @@ writelock = ReentrantLock()
 open(logfile, "a") do io
     Threads.@threads for j in eachindex(iterator)
         i = iterator[j]
-        if i == 2716
-            test1 = length(test_if_m(matlist[i], 1, p2v, p3v; show=true))
-        else
-            test1 = length(test_if_m(matlist[i], 1, p2v, p3v))
-        end
+        test1 = length(test_if_m(matlist[i], 1, p2v, p3v))
         if test1 == 0
             result = 0
         else
@@ -122,10 +118,8 @@ open(logfile, "a") do io
             for k=1:8
                 tempmatlist = refine_boxes(tempmatlist, k)
             end
-            println("d1")
             for k in 1:length(tempmatlist)
-                println("test k = $(k)")
-                test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=true)
+                test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000)
                 if length(test1) == 0
                     tempmatlist[k] *= 0
                 end
@@ -148,10 +142,10 @@ end
 println("Finished")
 
 
-for k in 1:length(tempmatlist)
-    display(k)
-    test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=false)
-    if length(test1) == 0
-        tempmatlist[k] *= 0
-    end
-end
+# for k in 1:length(tempmatlist)
+#     display(k)
+#     test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000, show=false)
+#     if length(test1) == 0
+#         tempmatlist[k] *= 0
+#     end
+# end
