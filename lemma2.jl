@@ -64,20 +64,42 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
         if !calc_range(b2, p2v, p3v, mat, d)
             push!(boxlist, (b2, dim == 12 ? 1 : dim + 1))
         end
-        if show
-            t += 1
-            if t % 1000000 == 0
-                println("$(t/1000000), $(length(boxlist)), $(diam(boxlist[end][1][1]))")
-            end
-            if t == timeout
-                return boxlist 
-            end
+        t += 1
+        if show && t % 1000000 == 0
+            println("$(t/1000000), $(length(boxlist)), $(diam(boxlist[end][1][1]))")
+        end
+        if t == timeout
+            return boxlist 
         end
     end
     boxlist
 end
 
 
+function lemma2_test(mat, d, p2v, p3v)
+    test1 = length(test_if_m(mat, 1, p2v, p3v; show=true))
+    if test1 == 0
+        return 0
+    else
+        # more refined test: essentially repeating lemma 1 at a smaller scale
+        tempmatlist = [mat]
+        for k=1:8
+            tempmatlist = refine_boxes(tempmatlist, k)
+        end
+        for k in eachindex(tempmatlist)
+            test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000)
+            if length(test1) == 0
+                tempmatlist[k] *= 0
+            end
+        end
+        filter!(x -> !iszero(x), tempmatlist)
+        t = 0
+        for M in tempmatlist
+            t += length(test_if_m(M, d, p2v, p3v)) > 0
+        end
+        return t
+    end  
+end
 
 
 p3v = Meta.parse(ARGS[2]) |> eval
@@ -108,30 +130,7 @@ writelock = ReentrantLock()
 open(logfile, "a") do io
     Threads.@threads for j in eachindex(iterator)
         i = iterator[j]
-        test1 = length(test_if_m(matlist[i], 1, p2v, p3v))
-        result = test1
-        # if test1 == 0
-        #     result = 0
-        # else
-        #     println("Retry $(i) case with refinement")
-        #     # more refined test: essentially repeating lemma 1 at a smaller scale
-        #     tempmatlist = [matlist[i]]
-        #     for k=1:8
-        #         tempmatlist = refine_boxes(tempmatlist, k)
-        #     end
-        #     for k in 1:length(tempmatlist)
-        #         test1 = search_box(tempmatlist[k], g, p3b; lim=100000, stacklim=1000)
-        #         if length(test1) == 0
-        #             tempmatlist[k] *= 0
-        #         end
-        #     end
-        #     filter!(x -> !iszero(x), tempmatlist)
-        #     t = 0
-        #     for M in tempmatlist
-        #         t += length(test_if_m(M, 1, p2v, p3v)) > 0
-        #     end
-        #     result = 1
-        # end  
+        result = lemma2_test(matlist[i], 1, p2v, p3v)
         lock(writelock) do
             validlist[i] = result
             println(io, "$i,$result")
