@@ -137,6 +137,7 @@ println("Remaining to compute: ", length(iterator), " out of $n")
 open(logfile, "a") do io
     for j in eachindex(iterator)
         i = iterator[j]
+        println("i = $i")
         result = lemma2_test(matlist[i], 1, p2v, p3v; show=true)
         validlist[i] = result
         println(io, "$i,$result")
