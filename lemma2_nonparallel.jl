@@ -56,6 +56,7 @@ function test_if_m(mat, d, p2v, p3v; show=false, lim=400, timeout=200000000)
     boxlist = [(SVector{12}([-1..1 for _=1:12]), 1)]
     t = 0
     println("starting test_if_m round")
+    display(show)
     while 0 < length(boxlist) < lim
         box, dim = pop!(boxlist)
         b1, b2 = subdivide_box(box, dim)
