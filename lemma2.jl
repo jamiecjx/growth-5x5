@@ -77,7 +77,7 @@ end
 
 
 function lemma2_test(mat, d, p2v, p3v)
-    test1 = length(test_if_m(mat, 1, p2v, p3v; show=true))
+    test1 = length(test_if_m(mat, 1, p2v, p3v))
     if test1 == 0
         return 0
     else
