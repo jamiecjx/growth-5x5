@@ -127,14 +127,17 @@ println("Remaining to compute: ", length(iterator), " out of $n")
 
 
 writelock = ReentrantLock()
+
 open(logfile, "a") do io
-    Threads.@threads for j in eachindex(iterator)
-        i = iterator[j]
-        result = lemma2_test(matlist[i], 1, p2v, p3v)
-        lock(writelock) do
-            validlist[i] = result
-            println(io, "$i,$result")
-            flush(io)
+    @sync for j in eachindex(iterator)
+        @spawn begin
+            i = iterator[j]
+            result = lemma2_test(matlist[i], 1, p2v, p3v)
+            lock(writelock) do
+                validlist[i] = result
+                println(io, "$i,$result")
+                flush(io)
+            end
         end
     end
 end
